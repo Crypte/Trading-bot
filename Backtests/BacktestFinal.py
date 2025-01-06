@@ -12,7 +12,7 @@ LIMIT = 300  # Nombre de bougies récupérées (maximum disponible)
 INITIAL_BALANCE = 10000  # Capital initial en USDT
 TRADE_PERCENTAGE = 1  # Pourcentage du portefeuille par trade
 TAKE_PROFIT_PERCENTAGE = 0.20  # Prise de profit à +20%
-STOP_LOSS_PERCENTAGE = 0.05  # Stop-loss à -5%
+STOP_LOSS_PERCENTAGE = 0.04  # Stop-loss à -5%
 
 # ==============================
 # INITIALISATION DE BINANCE

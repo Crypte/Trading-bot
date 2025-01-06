@@ -2,6 +2,7 @@ import ccxt
 import pandas as pd
 from ta.volatility import BollingerBands
 import matplotlib.pyplot as plt
+import itertools
 
 # ==============================
 # CONFIGURATION
@@ -10,9 +11,6 @@ SYMBOL = 'BTC/USDT'  # Paire de trading
 TIMEFRAME = '1d'  # Bougies journalières
 LIMIT = 300  # Nombre de bougies récupérées (maximum disponible)
 INITIAL_BALANCE = 10000  # Capital initial en USDT
-TRADE_PERCENTAGE = 1  # Pourcentage du portefeuille par trade
-TAKE_PROFIT_PERCENTAGE = 0.20  # Prise de profit à +20%
-STOP_LOSS_PERCENTAGE = 0.05  # Stop-loss à -5%
 
 # ==============================
 # INITIALISATION DE BINANCE
@@ -39,16 +37,23 @@ def apply_bollinger_bands(data):
     data['bb_lower'] = bb_indicator.bollinger_lband()  # Bande inférieure
     return data
 
-
 def generate_signal_bb(data):
-    """Générer des signaux d'achat/vente basés sur la Bande inférieure de Bollinger."""
+    """Générer des signaux d'achat/vente basés sur la Bande inférieure et supérieure de Bollinger avec une marge de 5%."""
     data['signal'] = 'HOLD'  # Par défaut, aucun signal
     for i in range(1, len(data)):
         close_price = data['close'].iloc[i]
 
-        # Condition d'achat uniquement basée sur la bande inférieure
-        if close_price <= data['bb_lower'].iloc[i]:
+        # Calcul de la marge de 5% autour des bandes de Bollinger
+        bb_lower_5_percent = data['bb_lower'].iloc[i] * 1.05  # 5% en dessous de la bande inférieure
+        bb_upper_5_percent = data['bb_upper'].iloc[i] * 0.95 # 5% au-dessus de la bande supérieure
+
+        # Condition d'achat : prix inférieur ou égal à 95% de la bande inférieure
+        if close_price <= bb_lower_5_percent:
             data.loc[data.index[i], 'signal'] = 'BUY'
+
+        # Condition de vente : prix supérieur ou égal à 105% de la bande supérieure
+        elif close_price >= bb_upper_5_percent:
+            data.loc[data.index[i], 'signal'] = 'SELL'
 
     return data
 
@@ -132,32 +137,45 @@ def plot_backtest(data, trades, balance_over_time):
     plt.tight_layout()
     plt.show()
 
+def grid_search_backtest():
+    """Effectuer une recherche en grille pour les hyperparamètres."""
+    trade_percentages = [0.1,0.2,0.3,0.4,0.5,0.7,0.8,0.9,1]  # Pourcentage du portefeuille par trade
+    take_profit_percentages = [0.05,0.1, 0.2, 0.3, 0.4,0.5]  # Pourcentage de prise de profit
+    stop_loss_percentages = [0.01,0.02,0.03,0.04,0.05, 0.06,0.07]  # Pourcentage de stop-loss
+
+    # Créer toutes les combinaisons possibles des hyperparamètres
+    parameter_combinations = list(itertools.product(trade_percentages, take_profit_percentages, stop_loss_percentages))
+
+    best_balance = 0
+    best_params = None
+
+    # Effectuer le backtest pour chaque combinaison
+    for params in parameter_combinations:
+        trade_percentage, take_profit, stop_loss = params
+        data = fetch_historical_data(SYMBOL, TIMEFRAME, LIMIT)
+        data = apply_bollinger_bands(data)
+        data = generate_signal_bb(data)
+
+        final_balance, trades, balance_over_time = backtest_bb_with_tp_sl(
+            data,
+            INITIAL_BALANCE,
+            trade_percentage,
+            take_profit,
+            stop_loss
+        )
+
+        print(f"Paramètres : {params}, Capital final : {final_balance:.2f} USDT")
+
+        # Si cette combinaison donne un meilleur capital final, on la garde
+        if final_balance > best_balance:
+            best_balance = final_balance
+            best_params = params
+
+    print(f"\nMeilleure combinaison d'hyperparamètres : {best_params}, Capital final : {best_balance:.2f} USDT")
+
 # ==============================
 # SCRIPT PRINCIPAL
 # ==============================
 
-# Récupérer les données historiques
-data = fetch_historical_data(SYMBOL, TIMEFRAME, LIMIT)
-
-# Appliquer les Bandes de Bollinger
-data = apply_bollinger_bands(data)
-
-# Générer les signaux basés sur la BB
-data = generate_signal_bb(data)
-
-# Effectuer le backtesting avec TP et SL
-final_balance, trades, balance_over_time = backtest_bb_with_tp_sl(
-    data,
-    INITIAL_BALANCE,
-    TRADE_PERCENTAGE,
-    TAKE_PROFIT_PERCENTAGE,
-    STOP_LOSS_PERCENTAGE
-)
-
-# Résultats
-print(f"Capital initial : {INITIAL_BALANCE} USDT")
-print(f"Capital final : {final_balance:.2f} USDT")
-print(f"Nombre de transactions : {len(trades)}")
-
-# Tracer les résultats
-plot_backtest(data, trades, balance_over_time)
+# Effectuer la recherche en grille des meilleurs hyperparamètres
+grid_search_backtest()
