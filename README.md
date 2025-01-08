@@ -21,8 +21,8 @@ Avant d'exécuter ce bot, vous devez disposer des éléments suivants :
 Clonez ce projet sur votre machine locale :
 
 ```bash
-git clone https://github.com/votre-utilisateur/trading-bot.git
-cd trading-bot
+git clone https://github.com/Crypte/Trading-bot.git
+cd Trading-bot
 ```
 
 ### 2. Créer un environnement virtuel (optionnel mais recommandé)
@@ -43,21 +43,28 @@ pip install -r requirements.txt
 ### 4. API Binance
 Pour les backtest, les clés API ne sont pas nécessaire
 
-### 5. Exécuter vos backtests localement :
+### 5. Exécuter votre backtests localement :
 
-Backtest 1
-Backtest 2
-BAcktest Final
+Placez-vous dans le dossier des backtests
+```bash
+cd Backtests
+```
+
+Exécutez le fichier
+
+```bash
+python BacktestFinal.py
+```
 
 ## Containisation du Bot avec Docker
 
-Si vous préférez exécuter le bot dans un conteneur Docker, suivez ces étapes :
+Afin d'éxecuter le bot dans un conteneur Docker, suivez ces étapes :
 
 ### 1. Construire l’image Docker
 Dans le répertoire du projet (contenant Dockerfile, bot.py et requirements.txt), exécutez la commande suivante pour construire l’image Docker :
 
 ```bash
-docker build -t trading-bot .
+docker build -t Trading-bot .
 ```
 
 ### 2. Exécuter le conteneur Docker avec en paramètre votre clé API
@@ -65,8 +72,8 @@ Une fois l’image construite, exécutez le bot dans un conteneur Docker en pass
 
 ```bash
 docker run -d \
-    -e API_KEY="votre_api_key" \
-    -e API_SECRET="votre_api_secret" \
+    -e API_KEY="votre_api_key_binance" \
+    -e API_SECRET="votre_api_secret_binance" \
     trading-bot
 ```
 Assurez-vous de remplacer "votre_api_key" et "votre_api_secret" par vos vraies clés API.
@@ -101,7 +108,7 @@ Vous pouvez personnaliser plusieurs paramètres dans les backtests en modifiant 
 
 - **SYMBOL** : La paire de trading (par défaut `BTC/USDT`).
 - **TIMEFRAME** : La période des bougies (par défaut `1d` pour une bougie journalière).
-- **LIMIT** : Le nombre de bougies récupérées pour l’analyse (par défaut 300).
+- **LIMIT** : Le nombre de bougies récupérées pour l’analyse (par défaut 300 et également le maximum).
 - **INITIAL_BALANCE** : Le capital initial en USDT (par défaut 10000).
 - **TRADE_PERCENTAGE** : Le pourcentage du portefeuille utilisé par trade (par défaut 1%).
 - **TAKE_PROFIT_PERCENTAGE** : Le pourcentage de prise de profit (+20% par défaut).
