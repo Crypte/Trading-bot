@@ -12,7 +12,7 @@ LIMIT = 300  # Nombre de bougies récupérées (maximum disponible)
 INITIAL_BALANCE = 10000  # Capital initial en USDT
 TRADE_PERCENTAGE = 1  # Pourcentage du portefeuille par trade
 TAKE_PROFIT_PERCENTAGE = 0.20  # Prise de profit à +20%
-STOP_LOSS_PERCENTAGE = 0.04  # Stop-loss à -5%
+STOP_LOSS_PERCENTAGE = 0.05  # Stop-loss à -5%
 
 # ==============================
 # INITIALISATION DE BINANCE
@@ -41,22 +41,17 @@ def apply_bollinger_bands(data):
 
 
 def generate_signal_bb(data):
-    """Générer des signaux d'achat/vente basés sur la Bande inférieure et supérieure de Bollinger avec une marge de 5%."""
+    """Générer des signaux d'achat basés sur la Bande inférieure de Bollinger avec une marge de 5%."""
     data['signal'] = 'HOLD'  # Par défaut, aucun signal
     for i in range(1, len(data)):
         close_price = data['close'].iloc[i]
 
         # Calcul de la marge de 5% autour des bandes de Bollinger
-        bb_lower_5_percent = data['bb_lower'].iloc[i] * 1.05  # 5% en dessous de la bande inférieure
-        bb_upper_5_percent = data['bb_upper'].iloc[i] * 0.95 # 5% au-dessus de la bande supérieure
+        bb_lower_5_percent = data['bb_lower'].iloc[i] * 1.05
 
         # Condition d'achat : prix inférieur ou égal à 95% de la bande inférieure
         if close_price <= bb_lower_5_percent:
             data.loc[data.index[i], 'signal'] = 'BUY'
-
-        # Condition de vente : prix supérieur ou égal à 105% de la bande supérieure
-        elif close_price >= bb_upper_5_percent:
-            data.loc[data.index[i], 'signal'] = 'SELL'
 
     return data
 
@@ -120,7 +115,7 @@ def plot_backtest(data, trades, balance_over_time):
     for trade in trades:
         action, price, _, _ = trade
         color = 'green' if action == 'BUY' else 'red'
-        plt.scatter(data.index[data['close'] == price], [price], c=color, label=action, alpha=0.7)
+        plt.scatter(data.index[data['close'] == price], [price], c=color, label='_nolegend_', alpha=0.7)
 
     plt.title("Prix et signaux de trading (Bandes de Bollinger)")
     plt.xlabel("Date")

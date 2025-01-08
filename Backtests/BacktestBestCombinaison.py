@@ -38,22 +38,17 @@ def apply_bollinger_bands(data):
     return data
 
 def generate_signal_bb(data):
-    """Générer des signaux d'achat/vente basés sur la Bande inférieure et supérieure de Bollinger avec une marge de 5%."""
+    """Générer des signaux d'achat basés sur la Bande inférieure et supérieure de Bollinger avec une marge de 5%."""
     data['signal'] = 'HOLD'  # Par défaut, aucun signal
     for i in range(1, len(data)):
         close_price = data['close'].iloc[i]
 
         # Calcul de la marge de 5% autour des bandes de Bollinger
         bb_lower_5_percent = data['bb_lower'].iloc[i] * 1.05  # 5% en dessous de la bande inférieure
-        bb_upper_5_percent = data['bb_upper'].iloc[i] * 0.95 # 5% au-dessus de la bande supérieure
 
         # Condition d'achat : prix inférieur ou égal à 95% de la bande inférieure
         if close_price <= bb_lower_5_percent:
             data.loc[data.index[i], 'signal'] = 'BUY'
-
-        # Condition de vente : prix supérieur ou égal à 105% de la bande supérieure
-        elif close_price >= bb_upper_5_percent:
-            data.loc[data.index[i], 'signal'] = 'SELL'
 
     return data
 
@@ -141,7 +136,7 @@ def grid_search_backtest():
     """Effectuer une recherche en grille pour les hyperparamètres."""
     trade_percentages = [0.1,0.2,0.3,0.4,0.5,0.7,0.8,0.9,1]  # Pourcentage du portefeuille par trade
     take_profit_percentages = [0.05,0.1, 0.2, 0.3, 0.4,0.5]  # Pourcentage de prise de profit
-    stop_loss_percentages = [0.01,0.02,0.03,0.04,0.05, 0.06,0.07]  # Pourcentage de stop-loss
+    stop_loss_percentages = [0.01 ,0.02,0.03,0.04,0.05,0.06,0.07]  # Pourcentage de stop-loss
 
     # Créer toutes les combinaisons possibles des hyperparamètres
     parameter_combinations = list(itertools.product(trade_percentages, take_profit_percentages, stop_loss_percentages))
